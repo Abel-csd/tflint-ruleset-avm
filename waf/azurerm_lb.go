@@ -9,7 +9,7 @@ func (wf WafRules) AzurermLbSku() *attrvalue.SimpleRule[string] {
 		"azurerm_lb",
 		"sku",
 		[]string{"Standard"},
-		"https://azure.github.io/Azure-Proactive-Resiliency-Library/services/networking/load-balancer/#lb-1---use-standard-load-balancer-sku",
+		"https://azure.github.io/Azure-Proactive-Resiliency-Library-v2/azure-resources/Network/loadBalancers/#use-standard-load-balancer-sku",
 		false,
 		"",
 	)
