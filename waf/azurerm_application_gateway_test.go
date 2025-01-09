@@ -24,8 +24,12 @@ func TestAzurermApplicationGatewayZones(t *testing.T) {
 			name: "correct setting",
 			rule: wafRules.AzurermApplicationGatewayZones(),
 			content: `
+	variable "zones" {
+		type    = list(number)
+		default = [1, 2, 3]
+	}
 	resource "azurerm_application_gateway" "example" {
-		zones = [1, 2, 3]
+		zones = var.zones
 	}`,
 			expected: helper.Issues{},
 		},
@@ -33,8 +37,12 @@ func TestAzurermApplicationGatewayZones(t *testing.T) {
 			name: "incorrect setting",
 			rule: wafRules.AzurermApplicationGatewayZones(),
 			content: `
+	variable "zones" {
+		type    = list(number)
+		default = [2, 3]
+	}
 	resource "azurerm_application_gateway" "example" {
-		zones = [2, 3]
+		zones = var.zones
 	}`,
 			expected: helper.Issues{
 				{
@@ -42,6 +50,44 @@ func TestAzurermApplicationGatewayZones(t *testing.T) {
 					Message: "\"[2 3]\" is an invalid attribute value of `zones` - expecting (one of) [[1 2 3]]",
 				},
 			},
+		},
+		{
+			name: "correct with string list",
+			rule: wafRules.AzurermApplicationGatewayZones(),
+			content: `
+	variable "zones" {
+		type    = list(string)
+		default = ["1", "2", "3"]
+	}
+	resource "azurerm_application_gateway" "example" {
+		zones = var.zones
+	}`,
+			expected: helper.Issues{},
+		},
+		{
+			name: "correct but different order",
+			rule: wafRules.AzurermApplicationGatewayZones(),
+			content: `
+	variable "zones" {
+		type    = list(number)
+		default = [2, 3, 1]
+	}
+	resource "azurerm_application_gateway" "example" {
+		zones = var.zones
+	}`,
+			expected: helper.Issues{},
+		},
+		{
+			name: "variable without default",
+			rule: wafRules.AzurermApplicationGatewayZones(),
+			content: `
+		variable "zones" {
+			type    = list(number)
+		}
+		resource "azurerm_application_gateway" "example" {
+			zones = var.zones
+		}`,
+			expected: helper.Issues{},
 		},
 	}
 
@@ -88,9 +134,13 @@ func TestAzurermApplicationGatewaySku(t *testing.T) {
 			name: "incorrect setting",
 			rule: wafRules.AzurermApplicationGatewaySku(),
 			content: `
+	variable "sku" {
+		type = string
+		default = "Standard_v3"
+	}
 	resource "azurerm_application_gateway" "example" {
 		sku {
-			name = "Standard_v3"
+			name = var.sku
 		}
 	}`,
 			expected: helper.Issues{
@@ -100,8 +150,29 @@ func TestAzurermApplicationGatewaySku(t *testing.T) {
 				},
 			},
 		},
+		{
+			name: "null value",
+			rule: wafRules.AzurermApplicationGatewaySku(),
+			content: `
+	variable "sku" {
+		type    = string
+		default = null
 	}
+	resource "azurerm_application_gateway" "example" {
+		sku = var.sku
+	}`,
+			expected: helper.Issues{},
+		},
+		{
+			name: "missing attribute",
+			rule: wafRules.AzurermApplicationGatewaySku(),
+			content: `
+	resource "azurerm_application_gateway" "example" {
 
+	}`,
+			expected: helper.Issues{},
+		},
+	}
 	filename := "main.tf"
 	for _, c := range testCases {
 		tc := c

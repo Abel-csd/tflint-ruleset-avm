@@ -48,6 +48,27 @@ func TestAzurermStorageAccountAccountReplicationType(t *testing.T) {
 				},
 			},
 		},
+		{
+			name: "null value",
+			rule: wafRules.AzurermStorageAccountAccountReplicationType(),
+			content: `
+	variable "account_replication_type" {
+		type    = string
+		default = null
+	}
+	resource "azurerm_storage_account" "example" {
+		account_replication_type = var.account_replication_type
+	}`,
+			expected: helper.Issues{},
+		},
+		{
+			name: "missing attribute",
+			rule: wafRules.AzurermStorageAccountAccountReplicationType(),
+			content: `
+	resource "azurerm_storage_account" "example" {
+	}`,
+			expected: helper.Issues{},
+		},
 	}
 
 	filename := "main.tf"
